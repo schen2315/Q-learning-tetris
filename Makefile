@@ -7,4 +7,4 @@ driver.o:	driver.cpp
 algo.o:	algo.cpp
 		g++ algo.cpp -c 
 clean:
-		rm -rf *.o algo
+		rm -rf *.o driver
