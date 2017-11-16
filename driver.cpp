@@ -1,7 +1,9 @@
 #include <iostream>
+#include "algo.hpp"
 using namespace std;
 
 int main() {
-	cout << "hello world" << endl;
+	Model m("sample.txt");
+	m.train();
 	return 0;
 }

@@ -19,9 +19,11 @@ class Model {
 							goal = goal state
 						*/
 		Model(int num_states);
+		Model(string file);
 		void initR(LL s1, LL s2, int val);
 		void initGoals(vector<LL> states);
 		void train();
+		void printQ();
 		LL getNextState(LL currState);	
-		int genRandState();		//user provides a method for generating a *valid state
+		LL genRandState();		//user provides a method for generating a *valid state
 };
