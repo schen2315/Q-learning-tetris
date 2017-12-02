@@ -8,3 +8,4 @@
 * What about learning patterns and relating these patterns to states never seen before?
 	Any general pattern matching algorithms that can be used?
 * Todo fix nextState to ONLY contain the BOARD, not both curr & next States
+* Can we use the solution for a 4x4 board to play nx5, nx6, nx7, etc. boards?
