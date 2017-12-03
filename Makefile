@@ -1,10 +1,12 @@
 all:	driver 
 		./driver
-driver:	algo_hashed.o driver.o
-		g++ algo_hashed.o driver.o -o driver
+driver:	tetris.o algo_hashed.o driver.o
+		g++ tetris.o algo_hashed.o driver.o -o driver
 driver.o:	driver.cpp
 		g++ driver.cpp -c
 algo_hashed.o:	algo_hashed.cpp
-		g++ algo_hashed.cpp -c 
+		g++ algo_hashed.cpp -c
+tetris.o:	tetris.cpp
+		g++ tetris.cpp -c 
 clean:
 		rm -rf *.o driver
