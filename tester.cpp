@@ -32,6 +32,13 @@ int main() {
 	cout << endl;
 	game.print_board(b);
 	cout << endl;
-	game.print_board(game.getNextBoard(b, p, r, c));
+	string nextBoard = game.getNextBoard(b, p, r, c);
+	game.print_board(nextBoard);
+	cout << endl;
+	cout << "Reward: " << game.isReward(nextBoard) << endl;
+	cout << "Goal: " << (game.isGoal(nextBoard) ? "yes" : "no") << endl;
+	cout << endl;
+	cout << "Updated board: " << endl;
+	game.print_board(game.updateBoard(nextBoard)); 
 	return 0;
 }

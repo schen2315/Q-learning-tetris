@@ -25,6 +25,7 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 			}
 		}
 	}
+	calcIter_prb();
 }
 void Tetris::play() {
 
@@ -72,6 +73,7 @@ bool Tetris::isValidPiece(string p) {
 }
 string Tetris::genRandBoard() {
 	//uses getNextBoard
+	//use this function to figure out how many iterations to generate a random board
 	return "";
 }
 string Tetris::getNextBoard(string board, string p, int rot, int col) {
@@ -126,7 +128,7 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 		/* Testing */
 	}
 	/* Testing */
-	/*		
+	/*
 	cout << endl;
 	for(int i=0;i < new_slot.length(); i++) {
 		cout << new_slot[i] << " ";
@@ -178,14 +180,57 @@ string Tetris::genContour(string p) {
 }
 vector<string>& Tetris::genAllNextValidBoards(string board, vector<string> & v) {
 	v.clear();
+	
 	return v;
 }
 string Tetris::updateBoard(string board) {
-	return "";
+	//check for is this valid ...
+	if(isGoal(board)) return board;
+	if(isReward(board) <= 0) return board;
+	string zeros = "";
+	for(int i=0; i < m; i++) zeros += '0';
+	int inc = 0;
+	bool completed = true;
+	if(isGoal(board)) return 0;
+	for(int i= pbitsr; i < n; i++) {
+		completed = true;
+		for(int j=0; j < m; j++) {
+			if(board[j+i*m] == '0') {
+				completed = false;
+				break;
+			}
+		}
+		if(completed) {
+			board = zeros + board.substr(0, i*m) + board.substr((i+1)*m, board.length() - ((i+1)*m));
+		}
+	}
+	return board;
 }
-bool Tetris::isReward(string board) {
-	return false;
+int Tetris::isReward(string board) {
+	int inc = 0;
+	bool completed = true;
+	if(isGoal(board)) return 0;
+	for(int i= pbitsr; i < n; i++) {
+		completed = true;
+		for(int j=0; j < m; j++) {
+			if(board[j+i*m] == '0') {
+				completed = false;
+				break;
+			}
+		}
+		if(completed) inc+= 1;
+	}
+	return inc;
 }
 bool Tetris::isGoal(string board) {
+	//check for is this valid ...
+	for(int i=0; i < pbitsr*m; i++) {
+		if(board[i] != '0') return true;
+	}
 	return false;
+}
+void Tetris::calcIter_prb() {
+	//TODO:
+		//figure out # of iterations per random board
+		//to ensure a uniform distribution between nearly complete and nearly empty boards
 }
