@@ -22,8 +22,9 @@ public:
 	bool isGoal(string board);
 	void print_all_configs();
 	void print_board(string board);
-	void print_piece(string p);
+	void print_piece(string p, int rot);
 	bool isValidPiece(string p);
 	void play();
 	bool intersects(string s1, string s2);
+	string merge(string s1, string s2);
 };
