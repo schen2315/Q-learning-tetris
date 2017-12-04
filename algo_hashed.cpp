@@ -1,3 +1,5 @@
+#ifndef TETRIS_HPP
+#define TETRIS_HPP
 #include "algo_hashed.hpp"
 #include <string>
 #include <iostream>
@@ -7,39 +9,23 @@
 #include <fstream>
 
 using namespace std;
-Model::Model(int bbits, int pbits) {
-	this->bbits = bbits;
-	this->pbits = pbits;
+Model::Model(int n, int m, int k, string file) {
+	this->bbits = n*m;
+	this->pbits = k;
 	this->gamma = 0.8;
 	this->ep = 100;
-};
-Model::Model(string file) {
-
-	this->bbits = 1;
-	this->pbits = 0;
-	this->gamma = 0.8;
-	this->ep = 100;
-	int n, k;
-	int temp;
+	vector<string> pieces;
 	ifstream in(file);
-	bbits = 1; pbits = 0;
-	in >> n;
-	this->n = n;
-	actions = new int* [n];
-	for(int i=0; i < n; i++) {
-		actions[i] = new int[n];
-	}
-	for(int i=0; i < n; i++) {
-		for(int j=0; j < n; j++) {
-			in >> actions[i][j];
-		}
-	}
-	in >> k;
-	for(int i=0; i < k; i++) {
+	string temp;
+	while(true) {
 		in >> temp;
-		goals.insert(temp);
+		cout << temp << endl;
+		pieces.push_back(temp);
+		if(in.eof()) break;
 	}
-}
+	in.close();
+	this->tetris = new Tetris(n, m, k, pieces);
+};
 void Model::train(string file) {
 	//Eventually want to log the current maxQ's
 
@@ -69,27 +55,12 @@ void Model::train(string file) {
 			Q[currState+nextState] = R[currState+nextState] + (int)(gamma*maxNext);
 			//need to update the board first if a row has been completed
 			//Todo fix nextState to ONLY contain the BOARD, not both curr & next States
-			//update maxQ[currState] = nextState if nextState > maxQ[currState]
 			updateMaxQ(currState, nextState);
-			currState = updateBoard(nextState);
+			currState = updateState(nextState);
 			//update Q if a goal state has been reached
 		}
 	}
 	//out.close();
-
-	/*check sample implementation*/
-	cout << "Q table:" << endl;
-	for(int i=0; i < n; i++) {
-		for(int j=0; j < n; j++) {
-			if(Q.find(to_string(i) + to_string(j)) != Q.end()) cout << Q[to_string(i) + to_string(j)] << " ";
-			else cout << "0 ";
-		}
-		cout << endl;
-	}
-	cout << "Max Q table: " << endl;
-	for(int i=0; i < n; i++) {
-		cout << i << ": " << maxQ[to_string(i)] << ": " << Q[to_string(i)+maxQ[to_string(i)]] << endl;
-	}
 };
 string Model::getNextState(string currState) {
 	//input is a board+piece
@@ -108,16 +79,13 @@ string Model::genRandState(string s) {
 	if(!isValidState(s)) 
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 
-	vector<string> v;
-	v = genAllNextValidStates(s, v);
-	string val = v[rand() % v.size()];
 	//return a board+piece
-	return val;
+	return "";
 }
 string Model::genRandState() {
 	//output board + piece
-	int val = rand() % n;
-	return to_string(val);
+	
+	return "";
 }
 bool Model::hasReachedGoalState(string state) {
 	//input board+piece
@@ -125,7 +93,7 @@ bool Model::hasReachedGoalState(string state) {
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 	//check if tetris has reached the top of the board
 	//needs tetris simulator
-	if(goals.find(stoi(state)) != goals.end()) return true;
+
 	return false;
 	//output true or false
 };
@@ -135,11 +103,10 @@ vector<string>& Model::genAllNextValidStates(string state, vector<string>& v) {
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 	v.clear();		//clear the vector first just in case
 	
-	for(int x=0; x < n; x++) {
-		if(actions[stoi(state)][x] != -1) {
-			v.push_back(to_string(x));
-		}
-	}
+	//when the algo_hashed recieves all of these next valid boards
+	//it will append the pieces of all_config 
+	//to actually generate all next valid States
+
 	return v;
 	//outputs the vector of strings, each string being a board+piece
 }
@@ -153,13 +120,11 @@ int Model::isRewardState(string s) {
 	//input should be board+piece+board+piece
 	if(s.length() != bbits+pbits+bbits+pbits)
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece+board+piece)");
-	//should check to see if there is a completed row
-	if(actions[s[0]-'0'][s[1]-'0'] > 0) return actions[s[0]-'0'][s[1]-'0'];
 	return 0;
 	//output reward value
 	//return a value greater than zero if we have a reward, o.w. zero
 }
-string Model::updateBoard(string s) {
+string Model::updateState(string s) {
 	//input is board+piece
 	if(!isValidState(s))
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
@@ -178,3 +143,4 @@ void Model::updateMaxQ(string currState, string nextState) {
 	}
 	//update maxQ[currState] = nextState[board]
 }
+#endif 

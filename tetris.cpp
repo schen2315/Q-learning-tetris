@@ -2,6 +2,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <cmath>
+#define ITER 1000
 using namespace std;
 Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	this->n = n;
@@ -25,6 +26,7 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 			}
 		}
 	}
+	srand(time(NULL));
 	calcIter_prb();
 }
 void Tetris::play() {
@@ -32,11 +34,26 @@ void Tetris::play() {
 }
 string Tetris::rotate(string p) {		//O(n)
 	string retVal = "";
+	string zerorows = "";
 	for(int i=0; i < pbitsr; i++) {
 		for(int j=pbitsr-1; j >= 0; j--) {
 			retVal += p[i+pbitsr*j];
 		}
 	}
+	bool zeros = true;
+	int inc = 0;
+	for(int i=pbitsr-1; i >= 0; i--) {
+		for(int j=0; j < pbitsr; j++) {
+			if(retVal[j+i*pbitsr] == '1') {
+				zeros = false;
+				break;
+			}
+		}
+		if(!zeros) break;
+		inc++;
+	}
+	for(int i=0; i < pbitsr*inc; i++) zerorows += '0';
+	retVal = zerorows + retVal.substr(0, (pbitsr-inc)*pbitsr);
 	return retVal;
 }
 void Tetris::print_board(string board) {
@@ -73,12 +90,26 @@ bool Tetris::isValidPiece(string p) {
 }
 string Tetris::genRandBoard() {
 	//uses getNextBoard
-	//use this function to figure out how many iterations to generate a random board
-	return "";
+	string retVal = "";
+	for(int i=0; i < this->bbits; i++) retVal += '0';
+	string p;
+	int r, c;
+	int it = rand() % this->iter_prb;
+	for(int i=0; i < it; i++) {
+		if(isGoal(retVal)) break;
+		p = all_configs[rand() % all_configs.size()];
+		r = rand() % 4;
+		c = rand() % (m-pbitsr+1); 
+		retVal = getNextBoard(retVal, p, r, c);
+		cout << endl;
+		print_board(retVal);
+		cout << endl;
+		if(isReward(retVal)) retVal = updateBoard(retVal);
+	}
+	return retVal;
 }
 string Tetris::getNextBoard(string board, string p, int rot, int col) {
-	//TODO:
-		//check that the first pbitsr rows are "0" 
+	//TODO: 
 	//what if we have floating pieces?
 	for(int i=0; i < pbitsr*m; i++) {
 		if(board[i] != '0') throw invalid_argument("Tetris::getNextBoard: board must not be in goal state"); 
@@ -103,8 +134,7 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	}
 	cout << endl;
 	/* Testing */
-	slotl = slot.length();
-	new_slot = p + slot.substr(pbits, slotl-pbits);
+	new_slot = p + slot.substr(pbits, slot.length()-pbits);
 	/* Testing */
 	/*
 	cout << endl;
@@ -114,7 +144,7 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	}
 	cout << endl;
 	/* Testing */
-	for(int i=pbits; i < slot.length()-pbitsr; i+=pbitsr) {
+	for(int i=0; i <= slot.length()-pbits; i+=pbitsr) {
 		if(intersects(slot.substr(i, pbits), p)) break;
 		new_slot = slot.substr(0, i) + merge(slot.substr(i,pbits),p) + slot.substr(i+pbits, slotl-(i+pbits));
 		/* Testing */
@@ -143,11 +173,11 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	return board;
 }
 bool Tetris::intersects(string s1, string s2) {
-	if(s1.length() != s2.length()) throw invalid_argument("intersects: strings s1 and s2 should have equal length");
 	/* Testing */
 	/*
 	cout << s1 << " " << s2 << endl;
 	/* Testing */
+	if(s1.length() != s2.length()) throw invalid_argument("intersects: strings s1 and s2 should have equal length");
 	for(int i=0; i < s1.length(); i++) {
 		if(s1[i] == '1' && s2[i] == '1') {
 			return true;
@@ -178,9 +208,16 @@ string Tetris::genContour(string p) {
 	}
 	return p;
 }
-vector<string>& Tetris::genAllNextValidBoards(string board, vector<string> & v) {
+vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<string> & v) {
+	//vector is composed of board ONLY
 	v.clear();
-	
+	string nextBoard = "";
+	for(int i=0; i <= m-pbitsr; i++) {	//each valid column
+		for(int j=0; j <= 3; j++) {
+			nextBoard = getNextBoard(board, p, j, i);
+			v.push_back(nextBoard);
+		}
+	}
 	return v;
 }
 string Tetris::updateBoard(string board) {
@@ -233,4 +270,51 @@ void Tetris::calcIter_prb() {
 	//TODO:
 		//figure out # of iterations per random board
 		//to ensure a uniform distribution between nearly complete and nearly empty boards
+	int iter2goal[ITER];
+	int inc, r, c;
+	string board, p;
+	cout << "Calculating iter_prb" << endl;
+	for(int it=0; it < ITER; it++) {
+		inc = 0;
+		string board = "";
+		for(int i=0; i < this->bbits; i++) board += '0';
+		while(!isGoal(board)) {
+			p = all_configs[rand() % all_configs.size()];
+			r = rand() % 4;
+			c = rand() % (m-pbitsr+1); 
+			board = getNextBoard(board, p, r, c);
+			/* Testing */
+			/*
+			cout << endl;
+			print_board(board);
+			cout << endl;
+			/* Testing */
+			if(isReward(board)) board = updateBoard(board);
+			inc++;
+		}
+		iter2goal[it] = inc;
+		/* Testing */
+		/*
+		cout << "iterations: " << inc << endl;
+		/* Testing */
+	}	
+	/* Calculate average */
+	int average = 0;
+	for(int it=0; it < ITER; it++) average += iter2goal[it];
+	average = (int)((float)average / ITER);
+	/* Testing */
+	
+	cout << endl;
+	cout << "average: " << average << endl;
+	/* Testing */
+	this->iter_prb = average+1;
+	return;
 }
+
+
+
+
+
+
+
+

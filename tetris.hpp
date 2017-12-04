@@ -19,7 +19,7 @@ public:
 	string rotate(string p);
 	string genRandBoard();
 	string getNextBoard(string board, string p, int rotations, int column);		//will be used for testing
-	vector<string>& genAllNextValidBoards(string board, vector<string> & v);
+	vector<string>& genAllNextValidBoards(string board, string p, vector<string> & v);
 	string updateBoard(string board);
 	string genContour(string p);
 	int isReward(string board);

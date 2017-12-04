@@ -8,8 +8,20 @@ int k, r, c;
 string p;
 string b;
 string temp = "";
-int main() {
-	vector<string> pieces;
+vector<string> pieces;
+vector<string> allNextBoards;
+int main(int argc, char ** argv) {
+	if(argc == 2 && strncmp(argv[1], "generate", 8) == 0) {
+		n = 10, m = 4, k = 2;
+		pieces.push_back("1111");
+		pieces.push_back("0111");
+		pieces.push_back("1010");
+		pieces.push_back("0010");
+		Tetris game(n, m, k, pieces);
+		//game.print_board(game.genRandBoard());
+		game.genRandBoard();
+		return 0;
+	}
 	cin >> n >> m >> k >> r >> c;
 	for(int i=0; i < k; i++) {
 		cin >> temp;
@@ -40,5 +52,12 @@ int main() {
 	cout << endl;
 	cout << "Updated board: " << endl;
 	game.print_board(game.updateBoard(nextBoard)); 
+	cout << endl;
+	cout << "All next boards: " << endl;
+	game.genAllNextValidBoards(b, p, allNextBoards);
+	for(int i=0; i < allNextBoards.size(); i++) {
+		cout << endl;
+		game.print_board(allNextBoards[i]);
+	}
 	return 0;
 }
