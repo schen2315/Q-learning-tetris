@@ -31,5 +31,4 @@ public:
 	void play();
 	bool intersects(string s1, string s2);
 	string merge(string s1, string s2);
-	void resetScore();
 };

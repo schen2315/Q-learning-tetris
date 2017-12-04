@@ -120,6 +120,7 @@ int Model::isRewardState(string s) {
 	//input should be board+piece+board+piece
 	if(s.length() != bbits+pbits+bbits+pbits)
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece+board+piece)");
+	
 	return 0;
 	//output reward value
 	//return a value greater than zero if we have a reward, o.w. zero
