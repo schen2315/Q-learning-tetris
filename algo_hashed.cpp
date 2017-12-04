@@ -1,5 +1,3 @@
-#ifndef TETRIS_HPP
-#define TETRIS_HPP
 #include "algo_hashed.hpp"
 #include <string>
 #include <iostream>
@@ -11,7 +9,7 @@
 using namespace std;
 Model::Model(int n, int m, int k, string file) {
 	this->bbits = n*m;
-	this->pbits = k;
+	this->pbits = k*k;
 	this->gamma = 0.8;
 	this->ep = 100;
 	vector<string> pieces;
@@ -41,7 +39,7 @@ void Model::train(string file) {
 		string currState = genRandState();
 		cout << "currState generated: " << currState << endl;
 		while(!hasReachedGoalState(currState)) {
-			string nextState = genRandState(currState);		
+			string nextState = genNextRandState(currState);		
 			valid = genAllNextValidStates(nextState, valid);
 			maxNext = 0;
 			for(int i=0; i < valid.size(); i++) {		//get the maximum Q value for the nextState
@@ -74,35 +72,75 @@ string Model::getNextState(string currState) {
 	//this case occurs if we've never seen currState before 
 	return "";
 }
-string Model::genRandState(string s) {
+string Model::genNextRandState(string s) {
 	//input board+piece
 	if(!isValidState(s)) 
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
-
+	string b = s.substr(0, this->bbits);
+	string p = s.substr(this->bbits, this->pbits);
+	string retVal = tetris->genNextRandBoard(b, p) + tetris->genRandPiece();
+	/* Testing */
+	cout << "Model::genNextRandState: " << endl;
+	cout << "Current: " << endl;
+	tetris->print_board(b);
+	cout << "Next: " << endl;
+	tetris->print_board(retVal.substr(0, this->bbits));
+	cout << endl;
+	/* Testing */
 	//return a board+piece
-	return "";
+	return retVal;
 }
 string Model::genRandState() {
 	//output board + piece
-	
-	return "";
+	string b = tetris->genRandBoard();
+	string p = tetris->genRandPiece();
+	string retVal = b+p;
+	/* Testing */
+	cout << "Model::genRandState: " << endl;
+	tetris->print_board(retVal.substr(0, this->bbits));
+	cout << endl;
+	/* Testing */
+	return retVal;
 }
-bool Model::hasReachedGoalState(string state) {
+bool Model::hasReachedGoalState(string s) {
 	//input board+piece
-	if(!isValidState(state))
+	if(!isValidState(s))
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 	//check if tetris has reached the top of the board
 	//needs tetris simulator
-
-	return false;
+	string b = s.substr(0, this->bbits);
+	bool retVal = tetris->isGoal(b);
+	/* Testing */
+	cout << "Model::hasReachedGoalState: " << endl;
+	cout << "Goal Reached: " << (retVal ? "yes" : "no") << endl;
+	cout << endl;
+	/* Testing */
+	return retVal;
 	//output true or false
 };
-vector<string>& Model::genAllNextValidStates(string state, vector<string>& v) {
+vector<string>& Model::genAllNextValidStates(string s, vector<string>& v) {
 	//takes a board+piece and a vector of strings, each string being a next possible board+piece
-	if(!isValidState(state)) 
+	if(!isValidState(s)) 
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 	v.clear();		//clear the vector first just in case
-	
+	vector<string> nextBoards;
+	string b = s.substr(0, this->bbits);
+	string p = s.substr(this->bbits, this->pbits);
+	nextBoards = tetris->genAllNextValidBoards(b, p, nextBoards);
+	for(int i=0; i < nextBoards.size(); i++) {
+		for(int j=0; j < tetris->all_configs.size(); j++) {
+			v.push_back(nextBoards[i] + tetris->all_configs[j]);
+		}
+	}
+	/* Testing */
+	cout << "Model::genAllNextValidStates: " << endl;
+	for(int i=0; i < v.size(); i++) {
+		cout << "board: " << endl;
+		tetris->print_board(v[i].substr(0, this->bbits));
+		cout << "piece: " << endl;
+		tetris->print_piece(v[i].substr(this->bbits, this->pbits), 0);
+	}
+	/* Testing */
 	//when the algo_hashed recieves all of these next valid boards
 	//it will append the pieces of all_config 
 	//to actually generate all next valid States
@@ -112,16 +150,33 @@ vector<string>& Model::genAllNextValidStates(string state, vector<string>& v) {
 }
 bool Model::isValidState(string s) {
 	//is string s a valid board+piece?
+	bool retVal = true;
+	cout << "bbits: " << bbits << " pbits: " << pbits << endl;
 	if(s.length() != bbits+pbits)
-		return false;
-	return true;
+		retVal = false;
+	/* Testing */
+	cout << "Model::isValidState: "<< s << " length: " << s.length() << endl;
+	cout << "isValidState: " << (retVal ? "yes" : "no") << endl;
+	cout << endl;
+	/* Testing */
+	return retVal;
 }
 int Model::isRewardState(string s) {
 	//input should be board+piece+board+piece
 	if(s.length() != bbits+pbits+bbits+pbits)
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece+board+piece)");
-	
-	return 0;
+	string b1, p1, b2, p2;
+	b1 = s.substr(0, bbits);
+	p1 = s.substr(bbits, pbits);
+	b2 = s.substr(bbits+pbits, bbits);
+	p2 = s.substr(bbits+pbits+bbits, pbits);
+	int retVal = tetris->isReward(b2);
+	/* Testing */
+	cout << "Model::isRewardState: " << endl;
+	cout << "reward: " << retVal << endl;
+	cout << endl;
+	/* Testing */
+	return retVal;
 	//output reward value
 	//return a value greater than zero if we have a reward, o.w. zero
 }
@@ -129,9 +184,17 @@ string Model::updateState(string s) {
 	//input is board+piece
 	if(!isValidState(s))
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
-
+	string b, p, retVal;
+	b = s.substr(0, bbits);
+	p = s.substr(bbits, pbits);
+	retVal = tetris->updateBoard(b) + p;
+	/* Testing */
+	cout << "Model::updateState: " << endl;
+	tetris->print_board(retVal.substr(0, this->bbits));
+	cout << endl;
+	/* Testing */
 	//for sample, no update required
-	return s;
+	return retVal;
 	//output board+piece
 }
 void Model::updateMaxQ(string currState, string nextState) {
@@ -140,8 +203,7 @@ void Model::updateMaxQ(string currState, string nextState) {
 	if(Q.find(currState+maxQ[currState]) == Q.end()) Q[currState+maxQ[currState]] = 0;
 	if(Q[currState+maxQ[currState]] < Q[currState+nextState]) {
 		maxQ[currState] = nextState;
-		cout << currState << " " << nextState << ": " << Q[currState+nextState] << endl;
+		//cout << currState << " " << nextState << ": " << Q[currState+nextState] << endl;
 	}
 	//update maxQ[currState] = nextState[board]
 }
-#endif 

@@ -14,23 +14,43 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
 	//get all unique rotations
 	//insert the pieces into the all_config
-	unordered_map<string, int> unique;
-	string p;
-	for(int i=0; i < pieces.size(); i++) {
-		p = pieces[i];
-		for(int i=0; i < 4; i++) {
-			p = rotate(p);
-			if(unique.find(p) == unique.end()) {
-				unique[p] = 1;
-				this->all_configs.push_back(p);
-			}
-		}
-	}
+		// unordered_map<string, int> unique;
+		// string p;
+		// for(int i=0; i < pieces.size(); i++) {
+		// 	p = pieces[i];
+		// 	/* Testing */
+		// 	cout << endl;
+		// 	print_piece(p, 0);
+		// 	cout << endl;
+		// 	/* Testing */
+		// 	for(int i=0; i < 4; i++) {
+		// 		p = rotate(p);
+		// 		/* Testing */
+		// 		cout << endl;
+		// 		print_piece(p, 0);
+		// 		cout << endl;
+		// 		/* Testing */
+		// 		if(unique.find(p) == unique.end()) {
+		// 			unique[p] = 1;
+		// 			this->all_configs.push_back(p);
+		// 		}
+		// 	}
+		// }
+		// /* Testing */
+		// for(int i=0; i < this->all_configs.size(); i++) {
+		// 	cout << "config: " << i << endl;
+		// 	print_piece(this->all_configs[i], 0);
+		// 	cout << endl;
+		// }
+		// /* Testing */
 	srand(time(NULL));
 	calcIter_prb();
 }
-void Tetris::play() {
-
+int Tetris::play() {
+	return 0;
+}
+int Tetris::randPlay() {
+	return 0;
 }
 string Tetris::rotate(string p) {		//O(n)
 	string retVal = "";
@@ -58,6 +78,7 @@ string Tetris::rotate(string p) {		//O(n)
 }
 void Tetris::print_board(string board) {
 	//input is going to be just board
+	if(board.length() != n*m) throw invalid_argument("board size must be n*m");
 	for(int i=0;i < board.length(); i++) {
 		cout << board[i] << " ";
 		if(i % m == m-1) cout << endl;
@@ -73,10 +94,12 @@ void Tetris::print_piece(string p, int rot) {
 	}
 }
 void Tetris::print_all_configs() {
+	/*
 	for(int i=0; i < all_configs.size(); i++) {
 		print_piece(all_configs[i], 0);
 		cout << endl;
 	}
+	*/
 }
 bool Tetris::isValidPiece(string p) {
 	//check that it is all ones & zeros
@@ -97,7 +120,7 @@ string Tetris::genRandBoard() {
 	int it = rand() % this->iter_prb;
 	for(int i=0; i < it; i++) {
 		if(isGoal(retVal)) break;
-		p = all_configs[rand() % all_configs.size()];
+		p = pieces[rand() % pieces.size()];
 		r = rand() % 4;
 		c = rand() % (m-pbitsr+1); 
 		retVal = getNextBoard(retVal, p, r, c);
@@ -107,6 +130,24 @@ string Tetris::genRandBoard() {
 		if(isReward(retVal)) retVal = updateBoard(retVal);
 	}
 	return retVal;
+}
+string Tetris::genNextRandBoard(string b, string p) {
+	//check that board and piece are valid
+	/*
+	int r, c;
+	string retVal = "";
+	r = rand() % 4;
+	c = rand() % (m-pbitsr+1);
+	retVal = getNextBoard(b, p, r, c);
+	*/
+	vector<string> nextBoards;
+	nextBoards = genAllNextValidBoards(b, p, nextBoards);
+	string retVal = nextBoards[rand() % nextBoards.size()];
+	return retVal;
+}
+string Tetris::genRandPiece() {
+	string p = pieces[rand() % this->pieces.size()];
+	return p;
 }
 string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	//TODO: 
@@ -211,11 +252,27 @@ string Tetris::genContour(string p) {
 vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<string> & v) {
 	//vector is composed of board ONLY
 	v.clear();
+	unique_boards.clear();
 	string nextBoard = "";
+	/* Testing */
+	cout << "Tetris::genAllNextValidBoards" << endl;
+	print_board(board);
+	cout << endl;
+	/* Testing */
 	for(int i=0; i <= m-pbitsr; i++) {	//each valid column
 		for(int j=0; j <= 3; j++) {
 			nextBoard = getNextBoard(board, p, j, i);
-			v.push_back(nextBoard);
+			//make sure each board is unique ...
+			//use a hash table
+			if(unique_boards.find(nextBoard) == unique_boards.end()) {
+				unique_boards[nextBoard] = 1;
+				/* Testing */
+				cout << "Tetris::genAllNextValidBoards, nextBoard: " << endl;
+				print_board(nextBoard);
+				cout << endl;
+				/* Testing */
+				v.push_back(nextBoard);
+			}
 		}
 	}
 	return v;
@@ -279,7 +336,7 @@ void Tetris::calcIter_prb() {
 		string board = "";
 		for(int i=0; i < this->bbits; i++) board += '0';
 		while(!isGoal(board)) {
-			p = all_configs[rand() % all_configs.size()];
+			p = pieces[rand() % pieces.size()];
 			r = rand() % 4;
 			c = rand() % (m-pbitsr+1); 
 			board = getNextBoard(board, p, r, c);

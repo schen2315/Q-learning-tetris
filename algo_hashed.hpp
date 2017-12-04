@@ -1,3 +1,5 @@
+#ifndef TETRIS_HPP
+#define TETRIS_HPP
 #include "tetris.hpp"
 #include <set>
 #include <vector>
@@ -34,14 +36,13 @@ class Model {
 							goal = goal state
 						*/
 		Model(int n, int m, int k, string file);
-		Model(string file);
 		bool hasReachedGoalState(string state);		//need tetris simulator
 		void train(string file);		
 		void setQ(string state);	//literally forgot what this was for ...
 		//void printQ();
 		string getNextState(string currState);	//use maxQ hashmap to generate a next state
 		vector<string> & genAllNextValidStates(string currState, vector<string> &);
-		string genRandState(string s);	//user provides a method for generating a valid state
+		string genNextRandState(string s);	//user provides a method for generating a valid state
 										//requires tetris simulator
 		string genRandState();
 		bool isValidState(string s);
@@ -49,3 +50,4 @@ class Model {
 		void updateMaxQ(string currState, string nextState);
 		string updateState(string s);
 };
+#endif

@@ -1,4 +1,4 @@
-#include "tetris.hpp"
+#include "algo_hashed.hpp"
 #include <vector>
 #include <iostream>
 #include <string>
@@ -20,6 +20,35 @@ int main(int argc, char ** argv) {
 		Tetris game(n, m, k, pieces);
 		//game.print_board(game.genRandBoard());
 		game.genRandBoard();
+		return 0;
+	}
+	if(argc == 2 && strncmp(argv[1], "algo", 8) == 0) {
+		cin >> n >> m >> k >> r >> c;
+		for(int i=0; i < k; i++) {
+			cin >> temp;
+			if(temp.length() != k) cout << "Error" << endl;
+			p += temp;
+		}
+		for(int i=0; i < n; i++) {
+			cin >> temp;
+			if(temp.length() != m) cout << "Error" << endl;
+			b += temp;
+		}
+		Model model(n, m, k, "tetris-piece-set-1.txt");
+		/* genRandState */
+		model.genRandState();
+		/* genNextRandState */
+		string b1p1 = model.genNextRandState(b+p);
+		/* hasReachedGoalState */
+		model.hasReachedGoalState(b+p);
+		/* genAllNextValidStates */
+		model.genAllNextValidStates(b+p, allNextBoards);
+		/* isValidState */
+		model.isValidState(b+p);
+		/* isRewardState */
+		model.isRewardState(b+p+b1p1);
+		/* updateState */
+		model.updateState(b+p);
 		return 0;
 	}
 	cin >> n >> m >> k >> r >> c;

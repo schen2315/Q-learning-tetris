@@ -1,5 +1,3 @@
-#ifndef TETRIS_HPP
-#define TETRIS_HPP
 #include <iostream>
 #include "algo_hashed.hpp"
 using namespace std;
@@ -47,4 +45,3 @@ int main() {
 
 	return 0;
 }
-#endif
