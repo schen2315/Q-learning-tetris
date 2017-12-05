@@ -2,46 +2,63 @@
 #include "algo_hashed.hpp"
 using namespace std;
 
+int n, m, k, iter;
 int main() {
-	Model m(6, 4, 2, "tetris-piece-set-1.txt");
-	//m.train("dummy");
-	
-	//testing tetris
-	/*
-	vector<string> pieces;
-	string p[] = {"1011", "1010", "0010", "1111", "1001"};
-	
-	for(int i=0; i < 5; i++) pieces.push_back(p[i]);
-	Tetris board(6, 4, 2, pieces);
-	*/
-	/*
-	board.print_all_configs();
-	
-	for(int i=0; i < 5; i++) {
-		board.print_piece(board.genContour(p[i]));
-		cout << endl;
-	}
-	
-	string p1r = p1;
-	cout << "Original:" << endl;
-	board.print_piece(p1);
-	cout << "Rotated:" << endl;
-	for(int i=0; i < 4; i++) {
-		p1r = board.rotate(p1r);
-		board.print_piece(p1r);
-		cout << endl;
-	}
-	*/
-	/*
-	string b1 = "000000000000000001000100";
-	cout << "piece, board: " << endl;
-	board.print_piece(p[0], 2);
-	cout << endl;
-	board.print_board(b1);
-	cout << endl;
-	b1 = board.getNextBoard(b1, p[0], 2, 1);
-	board.print_board(b1);
-	*/
+	n = 6;
+	m = 4;
+	k = 2;
+	iter = 10;
+	/* Run experiment by playing 100 random games and tracking the score */
+	Model m(n, m, k, "tetris-piece-set-1.txt");
+	m.train("dummy");
 
+	Tetris tetris(n, m, k, "tetris-piece-set-1.txt");
+	int accum_score = 0;
+	for(int i=0; i < iter; i++) {
+		accum_score += tetris.randPlay();
+	}
+	int randAvg = (int)((float)accum_score/iter);
+	cout << "After " << iter << " games, " << n-k << "x" << m << " board, average random score: " << randAvg << endl;
+
+	accum_score = 0;
+
+	for(int i=0; i < iter; i++) {
+		string b = "";
+		string p = "";
+		int score = 0;
+		for(int i=0; i < n*m; i++) b += "0";
+		while(!isGoal(b)) {
+			p = genRandPiece();
+			/* Testing */
+			/*
+			cout << endl;
+			print_piece(p, 0);
+			cout << endl;
+			print_board(b);
+			cout << endl;
+			cout << "Press Enter to Continue" << endl;
+			cin.ignore();
+			/* Testing */
+			b = m.getNextState(b, p);
+			/* Testing */
+			/*
+			cout << endl;
+			print_board(b);
+			cout << endl;
+			/* Testing */
+			score += isReward(b);
+			/* Testing */
+			/*
+			cout << "score: " << score << endl;
+			/* Testing */
+			b = updateBoard(b);
+		}
+		/* Testing */
+		/*
+		cout << "Final Score: " << score << endl;
+		/* Testing */
+		accum_score += score;
+	}
+	int QAvg = (int)((float)accum_score/iter);
 	return 0;
 }

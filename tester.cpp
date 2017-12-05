@@ -51,6 +51,16 @@ int main(int argc, char ** argv) {
 		model.updateState(b1p1);
 		return 0;
 	}
+	if(argc == 2 && strncmp(argv[1], "randomgame", 10) ==0) {
+		n = 10, m = 4, k = 2;
+		pieces.push_back("1111");
+		pieces.push_back("0111");
+		pieces.push_back("1010");
+		pieces.push_back("0010");
+		Tetris game(n, m, k, pieces);
+		game.randPlay();
+		return 0;
+	} 
 	cin >> n >> m >> k >> r >> c;
 	for(int i=0; i < k; i++) {
 		cin >> temp;

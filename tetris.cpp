@@ -1,5 +1,6 @@
 #include "tetris.hpp"
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
 #include <cmath>
 #define ITER 1000
@@ -12,45 +13,68 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	this->pbitsr = k;
 	this->pieces = pieces;		//deep copy 
 	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
-	//get all unique rotations
-	//insert the pieces into the all_config
-		// unordered_map<string, int> unique;
-		// string p;
-		// for(int i=0; i < pieces.size(); i++) {
-		// 	p = pieces[i];
-		// 	/* Testing */
-		// 	cout << endl;
-		// 	print_piece(p, 0);
-		// 	cout << endl;
-		// 	/* Testing */
-		// 	for(int i=0; i < 4; i++) {
-		// 		p = rotate(p);
-		// 		/* Testing */
-		// 		cout << endl;
-		// 		print_piece(p, 0);
-		// 		cout << endl;
-		// 		/* Testing */
-		// 		if(unique.find(p) == unique.end()) {
-		// 			unique[p] = 1;
-		// 			this->all_configs.push_back(p);
-		// 		}
-		// 	}
-		// }
-		// /* Testing */
-		// for(int i=0; i < this->all_configs.size(); i++) {
-		// 	cout << "config: " << i << endl;
-		// 	print_piece(this->all_configs[i], 0);
-		// 	cout << endl;
-		// }
-		// /* Testing */
 	srand(time(NULL));
 	calcIter_prb();
+}
+Tetris::Tetris(int n, int m, int k, string file) {
+	ifstream in(file);
+	string temp;
+	vector<string> pieces;
+	while(true) {
+		in >> temp;
+		pieces.push_back(temp);
+		if(in.eof()) break;
+	}
+	this->n = n;
+	this->m = m;
+	this->bbits = n*m;			//1st k rows are dummy rows to check if the board has reached its goal state
+	this->pbits = k*k;
+	this->pbitsr = k;
+	this->pieces = pieces;		//deep copy 
+	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
+	srand(time(NULL));
+	calcIter_prb();
+	in.close();
 }
 int Tetris::play() {
 	return 0;
 }
 int Tetris::randPlay() {
-	return 0;
+	string b = "";
+	string p = "";
+	int score = 0;
+	for(int i=0; i < n*m; i++) b += "0";
+	while(!isGoal(b)) {
+		p = genRandPiece();
+		/* Testing */
+		/*
+		cout << endl;
+		print_piece(p, 0);
+		cout << endl;
+		print_board(b);
+		cout << endl;
+		cout << "Press Enter to Continue" << endl;
+		cin.ignore();
+		/* Testing */
+		b = genNextRandBoard(b, p);
+		/* Testing */
+		/*
+		cout << endl;
+		print_board(b);
+		cout << endl;
+		/* Testing */
+		score += isReward(b);
+		/* Testing */
+		/*
+		cout << "score: " << score << endl;
+		/* Testing */
+		b = updateBoard(b);
+	}
+	/* Testing */
+	/*
+	cout << "Final Score: " << score << endl;
+	/* Testing */
+	return score;
 }
 string Tetris::rotate(string p) {		//O(n)
 	string retVal = "";
@@ -124,9 +148,12 @@ string Tetris::genRandBoard() {
 		r = rand() % 4;
 		c = rand() % (m-pbitsr+1); 
 		retVal = getNextBoard(retVal, p, r, c);
+		/* Testing */
+		/*
 		cout << endl;
 		print_board(retVal);
 		cout << endl;
+		/* Testing */
 		if(isReward(retVal)) retVal = updateBoard(retVal);
 	}
 	return retVal;
@@ -254,7 +281,9 @@ vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<str
 	v.clear();
 	unique_boards.clear();
 	string nextBoard = "";
+	if(isGoal(board)) return v;
 	/* Testing */
+	/*
 	cout << "Tetris::genAllNextValidBoards" << endl;
 	print_board(board);
 	cout << endl;
@@ -267,6 +296,7 @@ vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<str
 			if(unique_boards.find(nextBoard) == unique_boards.end()) {
 				unique_boards[nextBoard] = 1;
 				/* Testing */
+				/*
 				cout << "Tetris::genAllNextValidBoards, nextBoard: " << endl;
 				print_board(nextBoard);
 				cout << endl;
@@ -332,8 +362,11 @@ void Tetris::calcIter_prb() {
 	int inc, r, c;
 	int average = 0;
 	string board, p;
+	/* Testing */
+	/*
 	cout << "Calculating iter_prb" << endl;
 	cout << average << " " << ITER << endl;
+	/* Testing */
 	for(int it=0; it < ITER; it++) {
 		inc = 0;
 		string board = "";
@@ -362,11 +395,10 @@ void Tetris::calcIter_prb() {
 		/* Testing */
 	}	
 	/* Calculate average */
-	cout << average << " " << ITER << endl;
 	for(int it=0; it < ITER; it++) average += iter2goal[it];
 	average = (int)((float)average / ITER);
 	/* Testing */
-	
+	/*
 	cout << endl;
 	cout << "average: " << average << endl;
 	/* Testing */

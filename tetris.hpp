@@ -16,6 +16,7 @@ private:
 public:
 	vector<string> pieces;			//all unique pieces
 	Tetris(int n, int m, int k, vector<string>& pieces);
+	Tetris(int n, int m, int k, string file);
 	string rotate(string p);
 	string genRandBoard();
 	string genRandPiece();
