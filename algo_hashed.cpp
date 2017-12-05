@@ -10,8 +10,8 @@ using namespace std;
 Model::Model(int n, int m, int k, string file) {
 	this->bbits = n*m;
 	this->pbits = k*k;
-	this->gamma = 0.8;
-	this->ep = 10;
+	this->gamma = 0.90;
+	this->ep = 1000000;
 	vector<string> pieces;
 	ifstream in(file);
 	string temp;
@@ -37,9 +37,10 @@ void Model::train(string file) {
 	//ofstream out(file);
 	vector<string> valid;
 	for(int it=0; it < ep; it++) {
-		cout << "Episode: " << it << endl;
+		
+		// cout << "Episode: " << it << endl;
 		string currState = genRandState();
-		cout << "currState generated: " << endl; //<< currState << endl;
+		// cout << "currState generated: " << endl; //<< currState << endl;
 		/* Testing */
 		/*
 		tetris->print_piece(currState.substr(this->bbits, this->pbits), 0);
@@ -136,7 +137,7 @@ bool Model::hasReachedGoalState(string s) {
 	string b = s.substr(0, this->bbits);
 	bool retVal = tetris->isGoal(b);
 	/* Testing */
-	
+	/*
 	cout << "Model::hasReachedGoalState: " << endl;
 	cout << "Goal Reached: " << (retVal ? "yes" : "no") << endl;
 	cout << endl;
