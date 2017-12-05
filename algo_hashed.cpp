@@ -15,9 +15,10 @@ Model::Model(int n, int m, int k, string file) {
 	vector<string> pieces;
 	ifstream in(file);
 	string temp;
+	cout << "Model::Model" << endl;
 	while(true) {
 		in >> temp;
-		cout << temp << endl;
+		cout << "piece: " << temp << endl;
 		pieces.push_back(temp);
 		if(in.eof()) break;
 	}
@@ -128,8 +129,8 @@ vector<string>& Model::genAllNextValidStates(string s, vector<string>& v) {
 	string p = s.substr(this->bbits, this->pbits);
 	nextBoards = tetris->genAllNextValidBoards(b, p, nextBoards);
 	for(int i=0; i < nextBoards.size(); i++) {
-		for(int j=0; j < tetris->all_configs.size(); j++) {
-			v.push_back(nextBoards[i] + tetris->all_configs[j]);
+		for(int j=0; j < tetris->pieces.size(); j++) {
+			v.push_back(nextBoards[i] + tetris->pieces[j]);
 		}
 	}
 	/* Testing */

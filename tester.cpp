@@ -34,13 +34,13 @@ int main(int argc, char ** argv) {
 			if(temp.length() != m) cout << "Error" << endl;
 			b += temp;
 		}
-		Model model(n, m, k, "tetris-piece-set-1.txt");
+		Model model(n, m, k, "tetris-piece-set-2.txt");
 		/* genRandState */
 		model.genRandState();
 		/* genNextRandState */
 		string b1p1 = model.genNextRandState(b+p);
 		/* hasReachedGoalState */
-		model.hasReachedGoalState(b+p);
+		model.hasReachedGoalState(b1p1);
 		/* genAllNextValidStates */
 		model.genAllNextValidStates(b+p, allNextBoards);
 		/* isValidState */
@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
 		/* isRewardState */
 		model.isRewardState(b+p+b1p1);
 		/* updateState */
-		model.updateState(b+p);
+		model.updateState(b1p1);
 		return 0;
 	}
 	cin >> n >> m >> k >> r >> c;
@@ -62,6 +62,7 @@ int main(int argc, char ** argv) {
 		if(temp.length() != m) cout << "Error" << endl;
 		b += temp;
 	}
+	pieces.push_back("010111001");
 	Tetris game(n, m, k, pieces);
 	game.print_piece(p, 0);
 	cout << endl;

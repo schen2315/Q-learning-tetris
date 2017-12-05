@@ -11,11 +11,10 @@ private:
 	int pbitsr;	//# rows in pbits 
 	int iter_prb;	//game iterations per random board
 	int score;
-	vector<string> pieces;			//all unique pieces
 	unordered_map<string, int> unique_boards;
-
 	void calcIter_prb();
 public:
+	vector<string> pieces;			//all unique pieces
 	Tetris(int n, int m, int k, vector<string>& pieces);
 	string rotate(string p);
 	string genRandBoard();

@@ -10,7 +10,7 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	this->bbits = n*m;			//1st k rows are dummy rows to check if the board has reached its goal state
 	this->pbits = k*k;
 	this->pbitsr = k;
-	this->pieces = pieces;		//deep copy
+	this->pieces = pieces;		//deep copy 
 	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
 	//get all unique rotations
 	//insert the pieces into the all_config
@@ -275,6 +275,7 @@ vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<str
 			}
 		}
 	}
+	unique_boards.clear();
 	return v;
 }
 string Tetris::updateBoard(string board) {
@@ -329,16 +330,20 @@ void Tetris::calcIter_prb() {
 		//to ensure a uniform distribution between nearly complete and nearly empty boards
 	int iter2goal[ITER];
 	int inc, r, c;
+	int average = 0;
 	string board, p;
 	cout << "Calculating iter_prb" << endl;
+	cout << average << " " << ITER << endl;
 	for(int it=0; it < ITER; it++) {
 		inc = 0;
 		string board = "";
 		for(int i=0; i < this->bbits; i++) board += '0';
 		while(!isGoal(board)) {
+			// cout << pieces.size() << " " << (m-pbitsr+1) << endl;
 			p = pieces[rand() % pieces.size()];
 			r = rand() % 4;
 			c = rand() % (m-pbitsr+1); 
+			// cout << p << " " << r << " " << c << endl;
 			board = getNextBoard(board, p, r, c);
 			/* Testing */
 			/*
@@ -348,6 +353,7 @@ void Tetris::calcIter_prb() {
 			/* Testing */
 			if(isReward(board)) board = updateBoard(board);
 			inc++;
+			// cout << inc << endl;
 		}
 		iter2goal[it] = inc;
 		/* Testing */
@@ -356,7 +362,7 @@ void Tetris::calcIter_prb() {
 		/* Testing */
 	}	
 	/* Calculate average */
-	int average = 0;
+	cout << average << " " << ITER << endl;
 	for(int it=0; it < ITER; it++) average += iter2goal[it];
 	average = (int)((float)average / ITER);
 	/* Testing */
