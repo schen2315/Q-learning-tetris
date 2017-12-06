@@ -3,15 +3,17 @@
 #include <iostream>
 #include <cmath>
 #include <set>
-#include <time.h>
+#include <chrono>
 #include <fstream>
 
 using namespace std;
+using namespace std::chrono;
+double getTimeElapsed(high_resolution_clock::time_point t1, high_resolution_clock::time_point t2);
 Model::Model(int n, int m, int k, string file) {
 	this->bbits = n*m;
 	this->pbits = k*k;
 	this->gamma = 0.90;
-	this->ep = 1000000;
+	this->ep = 10;
 	vector<string> pieces;
 	ifstream in(file);
 	string temp;
@@ -34,8 +36,14 @@ void Model::train(string file) {
 	//valid should be a vector of board+piece
 	int maxNext;
 	srand(time(NULL));
-	//ofstream out(file);
+	ofstream out(file);
 	vector<string> valid;
+	long long int explored = 0;
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	/* Measurements */
+	out << "ep time memory edges" << endl;
+	/* Measurements */
 	for(int it=0; it < ep; it++) {
 		
 		// cout << "Episode: " << it << endl;
@@ -60,11 +68,17 @@ void Model::train(string file) {
 			for(int i=0; i < valid.size(); i++) {		//get the maximum Q value for the nextState
 				if(Q.find(nextState+valid[i]) != Q.end()) {
 					if(Q[nextState+valid[i]] > maxNext) maxNext = Q[nextState+valid[i]];
-				} else Q[nextState+valid[i]] = 0;
+				} else {
+					Q[nextState+valid[i]] = 0;
+					/* Measurements */
+					explored++;
+					/* Measurements */
+				}
 			}
 			if(R.find(currState+nextState) == R.end()) {	//do we have a reward value currently saved?
 				R[currState+nextState] = isRewardState(currState+nextState);
 			}
+			if(Q.find(currState+nextState) == Q.end()) explored++;
 			Q[currState+nextState] = R[currState+nextState] + (int)(gamma*maxNext);
 			//Todo fix nextState to ONLY contain the BOARD, not both curr & next States
 			//update Q if a goal state has been reached
@@ -79,8 +93,12 @@ void Model::train(string file) {
 			cout << endl;
 			/* Testing */
 		}
+		/* Measurements */
+		t2 = high_resolution_clock::now();
+		out << it << " " << getTimeElapsed(t1, t2) << " " << "memory_used_so_far" << " " << explored << endl;
+		/* Measurements */
 	}
-	//out.close();
+	out.close();
 };
 string Model::getNextState(string currState) {
 	//input is a board+piece
@@ -233,9 +251,20 @@ string Model::updateState(string s) {
 void Model::updateMaxQ(string currState, string nextState) {
 	//input should be board+piece
 	//and another board+piece
-	if(Q.find(currState+maxQ[currState]) == Q.end()) Q[currState+maxQ[currState]] = 0;
+	if(maxQ.find(currState) == maxQ.end()) {
+		maxQ[currState] = nextState;
+	}
+	if(maxQ.find(currState) == maxQ.end()) throw invalid_argument("No current maxQ entry set for currState");
+	if(Q.find(currState+maxQ[currState]) == Q.end()) {
+		throw invalid_argument("Q[currState+nextState] has not been set yet");
+		//Q[currState+maxQ[currState]] = 0;
+	}
 	if(Q[currState+maxQ[currState]] < Q[currState+nextState]) {
 		maxQ[currState] = nextState;
 		//cout << currState << " " << nextState << ": " << Q[currState+nextState] << endl;
 	}
+}
+double getTimeElapsed(high_resolution_clock::time_point t1, high_resolution_clock::time_point t2) {
+	double dif = duration_cast<std::chrono::milliseconds>(t2-t1).count();
+	return dif;
 }

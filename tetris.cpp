@@ -137,25 +137,32 @@ bool Tetris::isValidPiece(string p) {
 }
 string Tetris::genRandBoard() {
 	//uses getNextBoard
-	string retVal = "";
-	for(int i=0; i < this->bbits; i++) retVal += '0';
+	string retVal;
 	string p;
-	int r, c;
+	//int r, c;
 	int it = rand() % this->iter_prb;
-	for(int i=0; i < it; i++) {
-		if(isGoal(retVal)) break;
-		p = pieces[rand() % pieces.size()];
-		r = rand() % 4;
-		c = rand() % (m-pbitsr+1); 
-		retVal = getNextBoard(retVal, p, r, c);
-		/* Testing */
-		/*
-		cout << endl;
-		print_board(retVal);
-		cout << endl;
-		/* Testing */
-		if(isReward(retVal)) retVal = updateBoard(retVal);
-	}
+	do {
+		retVal = "";
+		for(int i=0; i < this->bbits; i++) retVal += '0';
+		for(int i=0; i < it; i++) {
+			if(isGoal(retVal)) break;
+			p = pieces[rand() % pieces.size()];
+			//r = rand() % 4;
+			//c = rand() % (m-pbitsr+1); 
+			//retVal = getNextBoard(retVal, p, r, c);
+			retVal = genNextRandBoard(retVal, p);
+			/* Testing */
+			/*
+			cout << endl;
+			print_board(retVal);
+			cout << endl;
+			/* Testing */
+			if(isReward(retVal)) retVal = updateBoard(retVal);
+		}
+		cout << "iterating ... " << endl;
+		
+	} while(!isGoal(retVal));
+
 	return retVal;
 }
 string Tetris::genNextRandBoard(string b, string p) {
