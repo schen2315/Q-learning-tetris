@@ -159,10 +159,12 @@ string Tetris::genRandBoard() {
 			/* Testing */
 			if(isReward(retVal)) retVal = updateBoard(retVal);
 		}
-		cout << "iterating ... " << endl;
-		
-	} while(!isGoal(retVal));
-
+		/* Testing */
+		/*
+		cout << "iterating ... " << it << endl;
+		print_board(retVal);
+		/* Testing */
+	} while(isGoal(retVal));
 	return retVal;
 }
 string Tetris::genNextRandBoard(string b, string p) {

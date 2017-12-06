@@ -14,6 +14,7 @@ Model::Model(int n, int m, int k, string file) {
 	this->pbits = k*k;
 	this->gamma = 0.90;
 	this->ep = 10;
+	this->pieceset = file;
 	vector<string> pieces;
 	ifstream in(file);
 	string temp;
@@ -42,7 +43,7 @@ void Model::train(string file) {
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
 	high_resolution_clock::time_point t2 = high_resolution_clock::now();
 	/* Measurements */
-	out << "ep time memory edges" << endl;
+	out << "ep,time,memory,edges" << endl;
 	/* Measurements */
 	for(int it=0; it < ep; it++) {
 		
@@ -95,10 +96,88 @@ void Model::train(string file) {
 		}
 		/* Measurements */
 		t2 = high_resolution_clock::now();
-		out << it << " " << getTimeElapsed(t1, t2) << " " << "memory_used_so_far" << " " << explored << endl;
+		out << it << "," << getTimeElapsed(t1, t2) << "," << "memory_used_so_far" << "," << explored << endl;
 		/* Measurements */
 	}
 	out.close();
+};
+void Model::train(string log_info, string train_info, string maxQ_table) {
+	//Eventually want to log the current maxQ's
+
+	//currState should be a board+piece
+	//nextState should also be a board+piece
+	//valid should be a vector of board+piece
+	int maxNext;
+	srand(time(NULL));
+	ofstream train_info_out(train_info);
+	ofstream log_info_out(log_info, std::ofstream::trunc);
+	vector<string> valid;
+	long long int explored = 0;
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	/* Measurements */
+	train_info_out << this->ep << " " << this->gamma << " " << this->n << " " << this->m << " " << this->k << " " << " " << this->pieceset << endl;
+	train_info_out << "ep,time,memory,edges" << endl;
+	/* Measurements */
+	for(int it=0; it < ep; it++) {
+		
+		// cout << "Episode: " << it << endl;
+		string currState = genRandState();
+		// cout << "currState generated: " << endl; //<< currState << endl;
+		/* Testing */
+		/*
+		tetris->print_piece(currState.substr(this->bbits, this->pbits), 0);
+		cout << endl;
+		tetris->print_board(currState.substr(0, this->bbits));
+		cout << endl;
+		/* Testing */
+		while(!hasReachedGoalState(currState)) {
+			/* Testing */
+			/*
+			cout << "Press Enter to Continue" << endl;
+			cin.ignore();
+			/* Testing */
+			string nextState = genNextRandState(currState);		
+			valid = genAllNextValidStates(nextState, valid);
+			maxNext = 0;
+			for(int i=0; i < valid.size(); i++) {		//get the maximum Q value for the nextState
+				if(Q.find(nextState+valid[i]) != Q.end()) {
+					if(Q[nextState+valid[i]] > maxNext) maxNext = Q[nextState+valid[i]];
+				} else {
+					Q[nextState+valid[i]] = 0;
+					/* Measurements */
+					explored++;
+					/* Measurements */
+				}
+			}
+			if(R.find(currState+nextState) == R.end()) {	//do we have a reward value currently saved?
+				R[currState+nextState] = isRewardState(currState+nextState);
+			}
+			if(Q.find(currState+nextState) == Q.end()) explored++;
+			Q[currState+nextState] = R[currState+nextState] + (int)(gamma*maxNext);
+			//Todo fix nextState to ONLY contain the BOARD, not both curr & next States
+			//update Q if a goal state has been reached
+			if(updateMaxQ(currState, nextState))
+			//need to update the board first if a row has been completed
+			currState = updateState(nextState);
+			/* Testing */
+			/*
+			tetris->print_piece(currState.substr(this->bbits, this->pbits), 0);
+			cout << endl;
+			tetris->print_board(currState.substr(0, this->bbits));
+			cout << endl;
+			/* Testing */
+		}
+		/* Measurements */
+		t2 = high_resolution_clock::now();
+		train_info_out << it << "," << getTimeElapsed(t1, t2) << "," << "memory_used_so_far" << "," << explored << endl;
+
+		/* Measurements */
+	}
+	t2 = high_resolution_clock::now();
+	log_info_out << "Training completed as of " << getTimeElapsed(t1, t2) << endl;
+	log_info_out.close();
+	train_info_out.close();
 };
 string Model::getNextState(string currState) {
 	//input is a board+piece
@@ -248,7 +327,7 @@ string Model::updateState(string s) {
 	return retVal;
 	//output board+piece
 }
-void Model::updateMaxQ(string currState, string nextState) {
+bool Model::updateMaxQ(string currState, string nextState) {	//return true if a new maximum for Q[currState] was found
 	//input should be board+piece
 	//and another board+piece
 	if(maxQ.find(currState) == maxQ.end()) {
@@ -261,8 +340,10 @@ void Model::updateMaxQ(string currState, string nextState) {
 	}
 	if(Q[currState+maxQ[currState]] < Q[currState+nextState]) {
 		maxQ[currState] = nextState;
+		return true;
 		//cout << currState << " " << nextState << ": " << Q[currState+nextState] << endl;
 	}
+	return false;
 }
 double getTimeElapsed(high_resolution_clock::time_point t1, high_resolution_clock::time_point t2) {
 	double dif = duration_cast<std::chrono::milliseconds>(t2-t1).count();

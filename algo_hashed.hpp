@@ -13,6 +13,7 @@ class Model {
 	private:	
 		int bbits;		//number of bits representing the board
 		int pbits;		//number of bits representing the piece
+		string pieceset;
 		/* sample goals to test hash implementation */
 		set<int> goals;
 
@@ -37,8 +38,11 @@ class Model {
 							goal = goal state
 						*/
 		Model(int n, int m, int k, string file);
+		Model(int ep, float gamma, int n, int m, int k, string file); 
+			/* ep, learning-rate, board height (including ghost portion), board width, piece width, file containg pieceset */
 		bool hasReachedGoalState(string state);		//need tetris simulator
-		void train(string file);		
+		void train(string train_info);
+		void train(string log_info, string train_info, string maxQ_table, string performance_info);		
 		void setQ(string state);	//literally forgot what this was for ...
 		//void printQ();
 		string getNextState(string currState);	//use maxQ hashmap to generate a next state
