@@ -122,7 +122,7 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 	high_resolution_clock::time_point t2 = high_resolution_clock::now();
 	/* Measurements */
 	train_info_out << this->ep << " " << this->gamma << " " << this->n << " " << this->m << " " << this->k << " " << this->pieceset << endl;
-	train_info_out << "ep,time,memory,edges" << endl;
+	train_info_out << "ep,time,edges" << endl;
 	/* Measurements */
 	for(int it=0; it < ep; it++) {
 		
@@ -183,7 +183,7 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 		}
 		/* Measurements */
 		t2 = high_resolution_clock::now();
-		train_info_out << it << "," << getTimeElapsed(t1, t2) << "," << "memory_used_so_far" << "," << explored << endl;
+		train_info_out << it << "," << getTimeElapsed(t1, t2) << "," << explored << endl;
 		/* Measurements */
 	}
 	/* Measurements */
