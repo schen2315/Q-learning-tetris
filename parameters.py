@@ -14,4 +14,8 @@ for i in xrange(0, len(ep)):
 	for j in xrange(0, len(alpha)):
 		for k in xrange(0, len(n_m_k)):
 			for l in xrange(0, len(pieces)):
+				if(l == 1 and k != 2):
+					continue
+				if(l == 0 and k == 2):
+					continue
 				print generateName(20),ep[i], alpha[j], n_m_k[k], pieces[l] 
