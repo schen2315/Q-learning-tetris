@@ -49,6 +49,8 @@ int main(int argc, char ** argv) {
 		string b = "";
 		string p = "";
 		int score = 0;
+		int hit = 0;
+		int moves = 0;
 		for(int i=0; i < n*m; i++) b += "0";
 		while(!tetris.isGoal(b)) {
 			p = tetris.genRandPiece();
@@ -62,7 +64,7 @@ int main(int argc, char ** argv) {
 			cout << "Press Enter to Continue" << endl;
 			cin.ignore();
 			/* Testing */
-			b = model.getNextState(b+p);
+			b = model.getNextState(b+p, hit);
 			/* Testing */
 			/*
 			cout << endl;
@@ -75,12 +77,13 @@ int main(int argc, char ** argv) {
 			cout << "score: " << score << endl;
 			/* Testing */
 			b = tetris.updateBoard(b);
+			moves++;
 		}
 		/* Testing */
 		/*
 		cout << "Final Score: " << score << endl;
 		/* Testing */
-		performance_file_out << i << "," << score << endl;
+		performance_file_out << i << "," << score << "," << ((float)hit)/moves << endl;
 		accum_score += score;
 	}
 	performance_file_out.close();

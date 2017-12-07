@@ -3,7 +3,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <cmath>
-#define ITER 1000
+#define ITER 100
 using namespace std;
 Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	this->n = n;
@@ -12,9 +12,14 @@ Tetris::Tetris(int n, int m, int k, vector<string> & pieces) {
 	this->pbits = k*k;
 	this->pbitsr = k;
 	this->pieces = pieces;		//deep copy 
+	//cout << "Tetris::Tetris" << endl;
+	for(int i=0; i<pieces.size(); i++) {
+		print_piece(pieces[i], 0);
+	}
 	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
 	srand(time(NULL));
 	calcIter_prb();
+
 }
 Tetris::Tetris(int n, int m, int k, string file) {
 	ifstream in(file);
@@ -34,6 +39,10 @@ Tetris::Tetris(int n, int m, int k, string file) {
 	if(k > m || k > n) throw invalid_argument("Tetris::Tetris: k must be less than n and m"); 
 	srand(time(NULL));
 	calcIter_prb();
+	for(int i=0; i<pieces.size(); i++) {
+		print_piece(pieces[i], 0);
+		cout << endl;
+	}
 	in.close();
 }
 int Tetris::play() {
@@ -194,13 +203,20 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	if(board.length() != n*m) throw invalid_argument("board size should be n*m");
 	if(p.length() != pbits) throw invalid_argument("string p should have length = to pbits");
 	if(rot < 0 || rot > 3) throw invalid_argument("rot should be between 0 and 3 inclusive");
-	if(col < 0 || col > m-pbitsr) throw invalid_argument("col must be between 0, m-pbitsr inclusive");
+	//if(col < 0 || col > m-pbitsr) throw invalid_argument("col must be between 0, m-pbitsr inclusive");
+	for(int i=0; i < 4; i++) p = rotate(p);
 	for(int i=0; i < rot; i++) p = rotate(p);
+	/*
+		remove any zero row and columns in the piece
+		update the piece width & height
+	*/
+	int pcols = remove_zero_cols(p);
+
 	string slot = "";
 	string new_slot = "";
 	int slotl = 0;
 	for(int i=0; i < n; i++) {
-		slot += board.substr(col+i*m, pbitsr);
+		slot += board.substr(col+i*m, pcols);
 	}
 	/* Testing */
 	/*
@@ -211,19 +227,20 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	}
 	cout << endl;
 	/* Testing */
-	new_slot = p + slot.substr(pbits, slot.length()-pbits);
+	new_slot = p + slot.substr(p.length(), slot.length()-p.length());
 	/* Testing */
 	/*
 	cout << endl;
+	cout << "Testing new_slot on " << pcols << " " << col << endl;
 	for(int i=0;i < new_slot.length(); i++) {
 		cout << new_slot[i] << " ";
 		if(i % pbitsr == pbitsr-1) cout << endl;
 	}
 	cout << endl;
 	/* Testing */
-	for(int i=0; i <= slot.length()-pbits; i+=pbitsr) {
-		if(intersects(slot.substr(i, pbits), p)) break;
-		new_slot = slot.substr(0, i) + merge(slot.substr(i,pbits),p) + slot.substr(i+pbits, slotl-(i+pbits));
+	for(int i=0; i <= slot.length()-p.length(); i+=pcols) {
+		if(intersects(slot.substr(i, p.length()), p)) break;
+		new_slot = slot.substr(0, i) + merge(slot.substr(i,p.length()),p) + slot.substr(i+p.length(), slotl-(i+p.length()));
 		/* Testing */
 		/*
 		cout << endl;
@@ -244,10 +261,40 @@ string Tetris::getNextBoard(string board, string p, int rot, int col) {
 	cout << endl;
 	/* Testing */		
 	for(int i=0; i < n; i++) {
-		board = board.substr(0, col+i*m) + new_slot.substr(i*pbitsr, pbitsr) + board.substr(col+i*m+pbitsr, board.length()-(col+i*m+pbitsr));
-
+		board = board.substr(0, col+i*m) + new_slot.substr(i*pcols, pcols) + board.substr(col+i*m+pcols, board.length()-(col+i*m+pcols));
 	}
 	return board;
+}
+int Tetris::remove_zero_cols(string & p) {
+	/* Testing */
+	/*
+	cout << pbitsr << endl;
+	/* Testing */
+	string p_zeros_removed = "";
+	int pcols = pbitsr;
+	int zero_cols[pbitsr];
+	for(int i=0; i < pbitsr; i++) zero_cols[i] = 1;
+	bool isZero;
+	for(int i=0; i < pbitsr; i++) {
+		isZero = true;
+		for(int j=0; j < pbitsr; j++) {
+			if(p[i+j*pbitsr] == '1') {
+				isZero = false;
+				break;
+			}
+		}
+		if(isZero) {
+			zero_cols[i] = 0;
+			pcols--;
+		}
+	}
+	for(int i=0; i < pbitsr; i++) {
+		for(int j=0; j < pbitsr; j++) {
+			if(zero_cols[j]) p_zeros_removed += p[j+i*pbitsr];
+		}
+	}
+	p = p_zeros_removed;
+	return pcols;
 }
 bool Tetris::intersects(string s1, string s2) {
 	/* Testing */
@@ -296,21 +343,35 @@ vector<string>& Tetris::genAllNextValidBoards(string board, string p, vector<str
 	cout << "Tetris::genAllNextValidBoards" << endl;
 	print_board(board);
 	cout << endl;
+	print_piece(p, 0);
+	cout << endl;
 	/* Testing */
-	for(int i=0; i <= m-pbitsr; i++) {	//each valid column
+	int pcols;
+	string temp_p;
+	for(int i=0; i < m; i++) {	//each valid column
 		for(int j=0; j <= 3; j++) {
-			nextBoard = getNextBoard(board, p, j, i);
-			//make sure each board is unique ...
-			//use a hash table
-			if(unique_boards.find(nextBoard) == unique_boards.end()) {
-				unique_boards[nextBoard] = 1;
-				/* Testing */
-				/*
-				cout << "Tetris::genAllNextValidBoards, nextBoard: " << endl;
-				print_board(nextBoard);
-				cout << endl;
-				/* Testing */
-				v.push_back(nextBoard);
+			temp_p = p;
+			for(int k=0; k < j; k++) temp_p = rotate(temp_p);
+			pcols = remove_zero_cols(temp_p);
+			/* Testing */
+			/*
+			print_piece(p, j);
+			cout << i << " " << j << " " << pcols << " " << m << endl;
+			/* Testing */
+			if(i+pcols <= m) {
+				nextBoard = getNextBoard(board, p, j, i);
+				//make sure each board is unique ...
+				//use a hash table
+				if(unique_boards.find(nextBoard) == unique_boards.end()) {
+					unique_boards[nextBoard] = 1;
+					/* Testing */
+					/*
+					cout << "Tetris::genAllNextValidBoards, nextBoard: " << endl;
+					print_board(nextBoard);
+					cout << endl;
+					/* Testing */
+					v.push_back(nextBoard);
+				}
 			}
 		}
 	}
@@ -383,10 +444,10 @@ void Tetris::calcIter_prb() {
 		while(!isGoal(board)) {
 			// cout << pieces.size() << " " << (m-pbitsr+1) << endl;
 			p = pieces[rand() % pieces.size()];
-			r = rand() % 4;
-			c = rand() % (m-pbitsr+1); 
+			// r = rand() % 4;
+			// c = rand() % (m-pbitsr+1); 
 			// cout << p << " " << r << " " << c << endl;
-			board = getNextBoard(board, p, r, c);
+			board = genNextRandBoard(board, p);
 			/* Testing */
 			/*
 			cout << endl;

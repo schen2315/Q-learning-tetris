@@ -48,7 +48,7 @@ class Model {
 		void train(string log_info, string train_info, string maxQ_table);		
 		void setQ(string state);	//literally forgot what this was for ...
 		//void printQ();
-		string getNextState(string currState);	//use maxQ hashmap to generate a next state
+		string getNextState(string currState, int &hit);	//use maxQ hashmap to generate a next state
 		vector<string> & genAllNextValidStates(string currState, vector<string> &);
 		string genNextRandState(string s);	//user provides a method for generating a valid state
 										//requires tetris simulator

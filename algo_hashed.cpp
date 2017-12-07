@@ -80,7 +80,7 @@ void Model::train(string file) {
 				}
 			}
 			if(R.find(currState+nextState) == R.end()) {	//do we have a reward value currently saved?
-				R[currState+nextState] = isRewardState(currState+nextState);
+				R[currState+nextState] = 25*isRewardState(currState+nextState);
 			}
 			if(Q.find(currState+nextState) == Q.end()) explored++;
 			Q[currState+nextState] = R[currState+nextState] + (int)(gamma*maxNext);
@@ -194,13 +194,14 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 	train_info_out.close();
 	/* Measurements */
 };
-string Model::getNextState(string currState) {
+string Model::getNextState(string currState, int & hit) {
 	//input is a board+piece
 	if(!isValidState(currState))
 		throw new invalid_argument("the parameter does not represent a valid state (board+piece)");
 	if(maxQ.find(currState) != maxQ.end())
 		//output board
-		cout << "MaxQ: hit! " << endl;
+		//cout << "MaxQ: hit! " << endl;
+		hit++;
 		return maxQ[currState].substr(0, this->bbits);
 	string b = currState.substr(0, this->bbits);
 	string p = currState.substr(this->bbits, this->pbits);

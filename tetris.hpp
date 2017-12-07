@@ -35,4 +35,5 @@ public:
 	int randPlay();
 	bool intersects(string s1, string s2);
 	string merge(string s1, string s2);
+	int remove_zero_cols(string & s1);
 };
