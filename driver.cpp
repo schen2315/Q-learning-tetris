@@ -1,16 +1,36 @@
 #include <iostream>
+#include <fstream>
 #include "algo_hashed.hpp"
 using namespace std;
 
-int n, m, k, iter;
-int main() {
-	n = 6;
-	m = 4;
-	k = 2;
-	iter = 10;
+int ep, n, m, k, iter;
+float ga;
+string pieceset, log_file, training_file, maxQ_file, performance_file;
+int main(int argc, char ** argv) {
+	if(argc != 11) throw invalid_argument("Main: not enough parameters to run experiment\nParameters are: ep ga n m k pieceset log_file training_file maxQ_file performance_file");
+	
+
+	/* Setting up parameters of experiment */
+	ep = stoi(argv[1]);
+	ga = stof(argv[2]);
+	n = stoi(argv[3]);
+	m = stoi(argv[4]);
+	k = stoi(argv[5]);
+	pieceset = argv[6];
+	log_file = argv[7];
+	training_file = argv[8];
+	maxQ_file = argv[9];
+	performance_file = argv[10];
+
+	iter = 100;
+	cout << "Running Experiment with these parameters:" << endl;
+	cout << "episodes: " << ep << " gamma: " << ga << " board height (including ghost squares): " << n << " board width: " << m << " piece width/height: " << k << " pieceset file: " << pieceset << " log file: " << log_file << " training file: " << training_file << " maxQ file: " << maxQ_file << " performance_file: " << performance_file << endl; 
+	/* Setting up parameters of experiment */
+	
+
+	/* Run experiment by playing iter # of random games and tracking the score */
 	srand(time(NULL));
-	/* Run experiment by playing 100 random games and tracking the score */
-	Tetris tetris(n, m, k, "tetris-piece-set-1.txt");
+	Tetris tetris(n, m, k, pieceset);
 	int accum_score = 0;
 	for(int i=0; i < iter; i++) {
 		accum_score += tetris.randPlay();
@@ -19,8 +39,11 @@ int main() {
 	cout << "After " << iter << " games, " << n-k << "x" << m << " board, average random score: " << randAvg << endl;
 	
 	/* Now train and test with the Q-learning algorithm */
-	Model model(n, m, k, "tetris-piece-set-1.txt");
-	model.train("dummy");
+	ofstream performance_file_out(performance_file);
+	performance_file_out << ep << " " << ga << " " << n << " " << m << " " << k << " " << pieceset << endl; 
+	//Model model(ep, ga, n, m, k, pieceset);
+	Model model(ep, ga, n, m, k, pieceset);
+	model.train(log_file, training_file, maxQ_file);
 	accum_score = 0;
 	for(int i=0; i < iter; i++) {
 		string b = "";
@@ -57,8 +80,10 @@ int main() {
 		/*
 		cout << "Final Score: " << score << endl;
 		/* Testing */
+		performance_file_out << i << "," << score << endl;
 		accum_score += score;
 	}
+	performance_file_out.close();
 	int QAvg = (int)((float)accum_score/iter);
 	cout << "After " << iter << " games, " << n-k << "x" << m << " board, Q-Learning average score: " << QAvg << endl;
 	return 0;

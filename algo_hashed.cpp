@@ -9,11 +9,14 @@
 using namespace std;
 using namespace std::chrono;
 double getTimeElapsed(high_resolution_clock::time_point t1, high_resolution_clock::time_point t2);
-Model::Model(int n, int m, int k, string file) {
+Model::Model(int ep, float gamma, int n, int m, int k, string file) {
+	this->n = n;
+	this->m = m;
+	this->k = k;
 	this->bbits = n*m;
 	this->pbits = k*k;
-	this->gamma = 0.90;
-	this->ep = 10;
+	this->gamma = gamma;
+	this->ep = ep;
 	this->pieceset = file;
 	vector<string> pieces;
 	ifstream in(file);
@@ -110,13 +113,15 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 	int maxNext;
 	srand(time(NULL));
 	ofstream train_info_out(train_info);
+	ofstream maxQ_table_out(maxQ_table);
 	ofstream log_info_out(log_info, std::ofstream::trunc);
+
 	vector<string> valid;
 	long long int explored = 0;
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
 	high_resolution_clock::time_point t2 = high_resolution_clock::now();
 	/* Measurements */
-	train_info_out << this->ep << " " << this->gamma << " " << this->n << " " << this->m << " " << this->k << " " << " " << this->pieceset << endl;
+	train_info_out << this->ep << " " << this->gamma << " " << this->n << " " << this->m << " " << this->k << " " << this->pieceset << endl;
 	train_info_out << "ep,time,memory,edges" << endl;
 	/* Measurements */
 	for(int it=0; it < ep; it++) {
@@ -153,11 +158,19 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 			if(R.find(currState+nextState) == R.end()) {	//do we have a reward value currently saved?
 				R[currState+nextState] = isRewardState(currState+nextState);
 			}
-			if(Q.find(currState+nextState) == Q.end()) explored++;
+			if(Q.find(currState+nextState) == Q.end()) {
+				/* Measurements */
+				explored++;
+				/* Measurements */
+			}
 			Q[currState+nextState] = R[currState+nextState] + (int)(gamma*maxNext);
 			//Todo fix nextState to ONLY contain the BOARD, not both curr & next States
 			//update Q if a goal state has been reached
-			if(updateMaxQ(currState, nextState))
+			if(updateMaxQ(currState, nextState)) {
+				/* Measurements */
+				maxQ_table_out << currState << " " << maxQ[currState] << endl;
+				/* Measurements */
+			}
 			//need to update the board first if a row has been completed
 			currState = updateState(nextState);
 			/* Testing */
@@ -171,13 +184,15 @@ void Model::train(string log_info, string train_info, string maxQ_table) {
 		/* Measurements */
 		t2 = high_resolution_clock::now();
 		train_info_out << it << "," << getTimeElapsed(t1, t2) << "," << "memory_used_so_far" << "," << explored << endl;
-
 		/* Measurements */
 	}
+	/* Measurements */
 	t2 = high_resolution_clock::now();
 	log_info_out << "Training completed as of " << getTimeElapsed(t1, t2) << endl;
 	log_info_out.close();
+	maxQ_table_out.close();
 	train_info_out.close();
+	/* Measurements */
 };
 string Model::getNextState(string currState) {
 	//input is a board+piece
@@ -332,6 +347,7 @@ bool Model::updateMaxQ(string currState, string nextState) {	//return true if a 
 	//and another board+piece
 	if(maxQ.find(currState) == maxQ.end()) {
 		maxQ[currState] = nextState;
+		return true;
 	}
 	if(maxQ.find(currState) == maxQ.end()) throw invalid_argument("No current maxQ entry set for currState");
 	if(Q.find(currState+maxQ[currState]) == Q.end()) {

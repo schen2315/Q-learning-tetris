@@ -1,5 +1,5 @@
 all:	driver 
-		./driver
+		# ./driver
 tester:	tetris.o algo_hashed.o tester.o
 		g++ tetris.o algo_hashed.o tester.o -o tester
 driver:	tetris.o algo_hashed.o driver.o
