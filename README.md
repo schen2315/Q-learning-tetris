@@ -33,3 +33,6 @@ Trains the AI. outputs log info, data relating to training and the maxQ table (f
 string Model::getNextState(string currState, int & hit)
 ```
 Only call after training the AI. Will get the next state given the current state. Pass a counter to keep track of the hit/miss rate.
+### Tetris Utility
+Includes functions to compute the next board given a current board, generate random boards, get all next possible boards given a current board, functions to have the computer play a random tetris game. All of these functions take the binary representation of the tetris board. These functions are used by the Q-Learning algorithm to get next and random states (tetris board) given the current state.
+
